@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  ids:
+    build: .
+    container_name: ids-dashboard
+    ports:
+      - "5050:5050"
+    volumes:
+      # Persist trained models and generated images between restarts
+      - ./models:/app/models
+      - ./data:/app/data
+      - ./static/img:/app/static/img
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
+    # For live capture (requires host networking + privileged)
+    # network_mode: host
+    # privileged: true

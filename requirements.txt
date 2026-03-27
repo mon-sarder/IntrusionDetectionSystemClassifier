@@ -1,0 +1,14 @@
+flask>=3.0
+scikit-learn>=1.4
+pandas>=2.1
+numpy>=1.26
+matplotlib>=3.8
+seaborn>=0.13
+joblib>=1.3
+gunicorn>=21.2
+
+# Deep learning (LSTM)
+tensorflow>=2.15     # or: tensorflow-cpu>=2.15
+
+# Live packet capture (optional — requires root + libpcap)
+scapy>=2.5
