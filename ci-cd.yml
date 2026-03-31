@@ -1,0 +1,106 @@
+name: IDS CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Lint + Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install core dependencies (no TF/Scapy for CI speed)
+        run: |
+          pip install --upgrade pip
+          pip install flask scikit-learn pandas numpy matplotlib seaborn joblib pytest
+
+      - name: Run unit tests
+        run: pytest tests/ -v --tb=short
+
+  train-smoke:
+    name: Training Smoke Test
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-smoke-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install flask scikit-learn pandas numpy matplotlib seaborn joblib
+
+      - name: Run training pipeline (500-sample fast mode)
+        run: |
+          python - <<'EOF'
+          import sys, os
+          sys.path.insert(0, '.')
+          from generate_data import generate_synthetic
+          from preprocess import encode_and_scale, build_binary_label, save_artifacts
+          from sklearn.ensemble import RandomForestClassifier
+          from sklearn.metrics import accuracy_score
+          import os
+
+          os.makedirs('models', exist_ok=True)
+          os.makedirs('static/img', exist_ok=True)
+          os.makedirs('data', exist_ok=True)
+
+          df = generate_synthetic(n_total=500, seed=42)
+          X, scaler, feature_cols = encode_and_scale(df, fit=True)
+          y = build_binary_label(df).values
+          save_artifacts(scaler, feature_cols, out_dir='models')
+
+          from sklearn.model_selection import train_test_split
+          X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
+          rf = RandomForestClassifier(n_estimators=10, random_state=42)
+          rf.fit(X_tr, y_tr)
+          acc = accuracy_score(y_te, rf.predict(X_te))
+          print(f"Smoke test accuracy: {acc*100:.1f}%")
+          assert acc > 0.85, f"Accuracy too low: {acc}"
+          print("✓ Smoke test passed")
+          EOF
+
+  docker-build:
+    name: Docker Build Check
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t ids-classifier:ci .
+
+      - name: Verify image exists
+        run: docker image inspect ids-classifier:ci
