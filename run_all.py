@@ -14,7 +14,7 @@ Usage:
   python run_all.py --skip-train     # just launch the dashboard
   python run_all.py --port 8080      # custom port
 """
-import argparse, os, sys, subprocess, time
+import argparse, os, sys, time
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS = os.path.join(ROOT, 'scripts')
@@ -39,19 +39,19 @@ def run_step(label, fn):
 
 
 def step_data():
-    from generate_data import load_dataset
+    from scripts.generate_data import load_dataset
     df, _, src = load_dataset(os.path.join(ROOT, 'data'))
     print(f"Dataset: {src}  |  {len(df):,} rows")
 
 
 def step_train_classical():
-    from train_classical import main
+    from scripts.train_classical import main
     main()
 
 
 def step_train_lstm(seq_len=10, epochs=20):
     try:
-        from train_lstm import main
+        from scripts.train_lstm import main
         main(seq_len=seq_len, epochs=epochs, mode='binary')
     except SystemExit:
         print("  [!] LSTM skipped — TensorFlow not installed")
@@ -59,7 +59,6 @@ def step_train_lstm(seq_len=10, epochs=20):
 
 
 def step_launch_flask(port=5050):
-    import flask
     print(f"\n{'─'*60}")
     print(f"  ▶  Launching IDS Dashboard on http://localhost:{port}")
     print(f"{'─'*60}")

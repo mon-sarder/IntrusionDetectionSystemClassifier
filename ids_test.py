@@ -11,9 +11,9 @@ import pandas as pd
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from generate_data import generate_synthetic, load_dataset
-from preprocess    import (encode_and_scale, build_binary_label,
-                            make_sequences, save_artifacts, load_artifacts)
+from scripts.generate_data import generate_synthetic
+from scripts.preprocess import (encode_and_scale, build_binary_label,
+                                make_sequences, save_artifacts, load_artifacts)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Fixtures
@@ -168,7 +168,7 @@ class TestArtifacts:
         save_artifacts(scaler, feature_cols, out_dir=str(tmp_path))
         s2, fc2, _ = load_artifacts(str(tmp_path))
         # Re-transform a slice and compare
-        from generate_data import generate_synthetic
+        from scripts.generate_data import generate_synthetic
         df_new = generate_synthetic(n_total=10, seed=7)
         X1, _, _ = encode_and_scale(df_new, scaler=scaler, feature_cols=feature_cols, fit=False)
         X2, _, _ = encode_and_scale(df_new, scaler=s2,     feature_cols=fc2,          fit=False)
@@ -189,7 +189,6 @@ class TestFlaskAPI:
     @pytest.fixture(scope='class')
     def client(self):
         # Patch MDL_DIR to a non-existent path so models won't load
-        import importlib
         import app as app_module
         app_module._ready = False
         app_module._load_error = "No models (CI test mode)"

@@ -39,7 +39,7 @@ def _load_models():
     global _models, _ready, _load_error
     try:
         import joblib
-        from preprocess import load_artifacts
+        from scripts.preprocess import load_artifacts
 
         scaler, feature_cols, le = load_artifacts(MDL_DIR)
         rf_b  = joblib.load(os.path.join(MDL_DIR, 'rf_binary.pkl'))
@@ -84,7 +84,7 @@ _app_start = time.time()
 # ── Core prediction helper ────────────────────────────────────────────────────
 def _predict_one(record: dict, model_name: str = 'rf_binary') -> dict:
     import pandas as pd
-    from preprocess import encode_and_scale
+    from scripts.preprocess import encode_and_scale
 
     record = dict(record)
     record.setdefault('label', 'normal')
@@ -230,7 +230,7 @@ def retrain():
 
     def _do():
         try:
-            from train_classical import main as train_main
+            from scripts.train_classical import main as train_main
             train_main()
             _load_models()
         except Exception as e:

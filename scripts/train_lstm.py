@@ -23,7 +23,6 @@ import argparse, os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 
 import numpy as np
-import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -49,9 +48,9 @@ try:
 except ImportError:
     TF_AVAILABLE = False
 
-from generate_data import load_dataset
-from preprocess    import (encode_and_scale, build_binary_label,
-                            make_sequences, load_artifacts)
+from scripts.generate_data import load_dataset
+from scripts.preprocess import (encode_and_scale, build_binary_label,
+                                make_sequences, load_artifacts)
 
 DARK   = '#0d1117'; PANEL  = '#161b22'; ACCENT = '#58a6ff'
 GREEN  = '#3fb950'; RED    = '#f85149'; TEXT   = '#e6edf3'

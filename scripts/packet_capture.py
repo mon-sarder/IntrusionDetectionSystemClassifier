@@ -30,7 +30,7 @@ except ImportError:
 try:
     import joblib
     import numpy as np
-    from preprocess import load_artifacts, encode_and_scale
+    from scripts.preprocess import load_artifacts, encode_and_scale
     import pandas as pd
     MODELS_OK = True
 except Exception as e:
